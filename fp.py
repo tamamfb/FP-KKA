@@ -148,7 +148,67 @@ level_1 = [
 "XXXXXXXXXXXXXXXXXXXXXXXXX"
 ]
 
+level_2 = [
+"XXXXXXXXXXXXXXXXXXXXXXXXX",
+"XP     XXXXXX       XXXXX",
+"X  XX  XXXXXX  XXXX  XXXX",
+"X  XX     XX      X  XXXX",
+"X  XX  T  XX  XX  X    XX",
+"XX     XXXX  XX  XXXXXX X",
+"XX     XXXX      XX  XX X",
+"XXXXXX    XXXXXX XX  XX X",
+"XXXXXX  T     XX XX  XX X",
+"X    X XXXXXX  XX XX  XX ",
+"X  T    XXX       Z  XXXX",
+"XXXXX XXXXXXXXX  XXXXXX X",
+"XXXXX                 X X",
+"XX           XXX  XX  X X",
+"XX      XXXXXXXT  XX  X X",
+"XXXXXXX       XX  XX  X X",
+"XXXXXXXXXX  XXXX  XX  X X",
+"X   XXXXX   XXXX  XX  X X",
+"X T         XXXXXXXX  X X",
+"XXXXXX         XXXX Z    X",
+"XX   XXXXXXX  XXXXXXXXXXXX",
+"XX       XXXX   XXXXXXXE X",
+"XXXXX         T       X  X",
+"XXXXXXXX  XXXXXX         X",
+"XXXXXXXXXXXXXXXXXXXXXXXXXX"
+]
+
+level_3 = [
+"XXXXXXXXXXXXXXXXXXXXXXXXX",
+"XXXXXX  XXX         X  PX",
+"XXXXXX  XXX         XT  X",
+"XXXXX E XXXZ        X   X",
+"XXXXX   XXX  XXXXXXXX   X",
+"XXXX    XX   XXX      XXX",
+"XXXX  XXXX   XXX      XXX",
+"XXXX ZXXX    XXX XXXX XXX",
+"XXXX  XXX   XXX  XXXX XXX",
+"XXXXT XXXT XXXX  XXXX   X",
+"XXXX XXXXX XXX T   XX  XX",
+"XXXX XXXXX XXX     XXX  X",
+"XXXX   XXX XX     ZXXXX X",
+"XXXX    X  XX XXXX XXX  X",
+"XXXX       XX XXXX  XX XX",
+"X T      XXXX XXXX X X  X",
+"X XXXXXXXXX   XXXX   XX X",
+"X XXXXXXX     XXXX  X   X",
+"X          XX XXXX    XXX",
+"X         XXX XXXXXXXXXXX",
+"X         XXX  XXXXXXXXXX",
+"X  XXXX  XXXX  T      XXX",
+"XX XXXXXXXXXXXXXXXXXX XXX",
+"XX                       ", # make this walls
+"XXXXXXXXXXXXXXXXXXXXXXXXX" # make this tunnel
+]
+
+
+
 levels.append(level_1)
+levels.append(level_2)
+levels.append(level_3)
 
 # Maze Setup
 def setup_maze(level):
@@ -184,7 +244,6 @@ foods = []
 zombies = []
 exits = []
 
-setup_maze(levels[0])
 
 # Stamina Display
 stamina_display = Pen()
@@ -232,7 +291,7 @@ def game_over(won=False):
     # Display Restart and Quit options
     pen.goto(0, -50)
     pen.color("yellow")
-    pen.write("Press R to Restart", align="center", font=("Arial", 18, "normal"))
+    pen.write("Press M for Menu", align="center", font=("Arial", 18, "normal"))
 
     pen.goto(0, -80)
     pen.color("yellow")
@@ -244,7 +303,52 @@ def check_exit_collision():
         if player.is_collision(exit_point):
             game_over(won=True)  # Trigger win condition when player touches exit
 
-# Restart the Game
+# Hitamkan layarnya
+def clear_screen():
+    # Create a large black rectangle to cover everything
+    pen.clear()  # Clear any prior elements drawn by the pen
+    pen.color("black")
+    pen.goto(0, 0)
+    pen.begin_fill()
+    for _ in range(2):
+        pen.forward(350)
+        pen.left(90)
+        pen.forward(350)
+        pen.left(90)
+    pen.end_fill()
+    pen.hideturtle()
+
+# Show Menu
+def show_menu():
+    global game_over_flag  # To reset the game state when restarting from the menu
+    game_over_flag = True  # Prevent game logic from running while in the menu
+
+    clear_screen()
+
+    pen.clear()
+    pen.color("yellow")
+    pen.goto(0, 100)
+    pen.write("Zombie Maze Game", align="center", font=("Arial", 24, "bold"))
+
+    pen.goto(0, 50)
+    pen.write("Press 1 for Level 1", align="center", font=("Arial", 18, "normal"))
+
+    pen.goto(0, 20)
+    pen.write("Press 2 for Level 2", align="center", font=("Arial", 18, "normal"))
+
+    pen.goto(0, -10)
+    pen.write("Press 3 for Level 3", align="center", font=("Arial", 18, "normal"))
+
+    pen.goto(0, -50)
+    pen.write("Press Q to Quit", align="center", font=("Arial", 18, "normal"))
+
+    wn.listen()
+    wn.onkeypress(lambda: start_game(0), "1")  # Start Level 1
+    wn.onkeypress(lambda: start_game(1), "2")  # Start Level 2
+    wn.onkeypress(lambda: start_game(2), "3")  # Start Level 3
+    wn.onkeypress(close_game, "q")  # Quit the game
+
+# Restart the Game [DEPRECATED]
 def restart_game():
     global game_over_flag
     game_over_flag = False
@@ -264,7 +368,7 @@ def restart_game():
     walls.clear()
     exits.clear()  # Clear existing exits
 
-    setup_maze(levels[0])  # Recreate the maze
+    setup_maze(levels[2])  # Recreate the maze SAMA INII
     update_stamina_display()
 
 # Close the Game
@@ -277,7 +381,7 @@ wn.onkeypress(player.go_left, "Left")
 wn.onkeypress(player.go_right, "Right")
 wn.onkeypress(player.go_up, "Up")
 wn.onkeypress(player.go_down, "Down")
-wn.onkeypress(restart_game, "r")
+wn.onkeypress(show_menu, "m")
 wn.onkeypress(close_game, "q")
 
 # Calculate Neighbors for Dijkstra
@@ -331,6 +435,39 @@ def move_zombie_towards_player(zombie, player, walls):
 # Initialize Frame Counter
 frame_count = 0
 zombie_move_interval = 10  # Adjust this value to control zombie speed
+
+def start_game(level_index):
+    global game_over_flag
+    game_over_flag = False
+
+    # Hide the menu
+    pen.clear()
+
+    # Reset player, walls, foods, zombies, and exits
+    player.goto(-288, 288)  # Reset player to default position
+    player.stamina = 40
+    player.showturtle()
+
+    global walls, foods, zombies, exits
+    walls.clear()
+    foods.clear()
+    zombies.clear()
+    exits.clear()
+
+    setup_maze(levels[level_index])  # Set up the selected level
+    update_stamina_display()  # Update stamina display
+
+    # Listen for gameplay inputs
+    wn.listen()
+    wn.onkeypress(player.go_left, "Left")
+    wn.onkeypress(player.go_right, "Right")
+    wn.onkeypress(player.go_up, "Up")
+    wn.onkeypress(player.go_down, "Down")
+    wn.onkeypress(close_game, "q")
+    wn.onkeypress(show_menu, "m")
+
+
+show_menu()
 
 # Main Game Loop
 while True:
